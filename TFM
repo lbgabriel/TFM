@@ -1,0 +1,114 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import LinearRegression
+import streamlit as st 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df20_21=pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\NBA_2020-2021_basic.csv")
+df21_22=pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\NBA_2021-2022_basic.csv")
+luka_playoff = pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\luka playoff.csv")
+
+luka_playoff.head()
+luka_playoff.columns
+# Lista para almacenar las nuevas columnas
+new_columns = []
+
+# Seleccionar las columnas desde la tercera en adelante
+columna = luka.columns[3:]
+for col in columna:
+    new_col = col + '_mean'
+    # Calcular la media acumulativa y agregar a la lista
+    new_columns.append(luka[col].expanding().mean().rename(new_col))
+
+# Concatenar todas las nuevas columnas en un solo DataFrame
+new_df = pd.concat(new_columns, axis=1)
+
+# Verificar los nombres de las columnas generadas
+print("Nombres de las nuevas columnas:")
+print(new_df.columns)
+
+# Lista de columnas deseadas (asegúrate de que estos nombres sean correctos)
+columnas = [
+    'PTS_mean', 'FG%_mean', '3P_mean', '3PA_mean', '3P%_mean', 'FT_mean', 'FTA_mean',
+    'FT%_mean', 'ORB_mean', 'DRB_mean', 'TRB_mean', 'AST_mean', 'STL_mean', 'BLK_mean', 
+    'TOV_mean', 'PF_mean', 'GmSc_mean', '+/-_mean'
+]
+
+# Filtrar las columnas deseadas en el nuevo DataFrame
+luka_work = new_df[columnas]
+
+# Mostrar el nuevo DataFrame
+print("\nNuevo DataFrame (luka_work) con las columnas seleccionadas:")
+print(luka_work)
+
+# Agregar encabezado y descripción de la aplicación
+st.title('Optimización de Profundidad de Árbol de Decisión')
+st.write("""
+Esta aplicación permite encontrar la mejor profundidad para un modelo de árbol de decisión utilizando datos de entrenamiento.
+""")
+
+# Cargar datos (reemplaza esto con tu propio código para cargar los datos)
+# X, y = ...
+# X_train2, X_test2, y_train2, y_test2 = train_test_split(X, y, test_size=0.3)
+
+# Widget para seleccionar la profundidad máxima del árbol
+max_depth = st.slider('Profundidad Máxima del Árbol', min_value=1, max_value=250, value=1)
+
+# Botón para ajustar el modelo
+if st.button('Ajustar Modelo'):
+    # Inicializar el mejor MAE con un valor infinito
+    best_mae = float('inf')
+    best_depth = None
+    
+    # Ajustar el modelo con la profundidad seleccionada
+    clf = DecisionTreeRegressor(max_depth=max_depth)
+    clf.fit(X_train2, y_train2)
+    predictions = clf.predict(X_test2)
+    
+    # Calcular el error absoluto medio mínimo
+    t_error = np.abs(predictions - y_test2)
+    best_mae = t_error.mean()
+    best_depth = max_depth
+    
+    # Mostrar la mejor combinación de parámetros
+    st.write("La mejor combinación de parámetros:")
+    st.write("Profundidad óptima:", best_depth)
+    st.write("Error absoluto medio mínimo:", best_mae)
+best_mae = float('inf')  # Inicializar el mejor MAE con un valor infinito
+best_depth = None  # Inicializar la mejor profundidad como nula
+
+for depth in range(1, 250):
+    clf = DecisionTreeRegressor(max_depth=depth)
+    clf.fit(X_train2, y_train2)
+    tpredictions = clf.predict(X_test2)
+    t_error = np.abs(tpredictions - y_test2)
+    mae = t_error.mean()
+    if mae < best_mae:
+        best_mae = mae
+        best_depth = depth
+
+# Imprimir la mejor combinación de parámetros
+print("La mejor combinación de parámetros:")
+print("Profundidad óptima:", best_depth)
+print("Error absoluto medio mínimo:", best_mae)
+
+tpredictions
+
+# Crear una instancia del modelo de regresión lineal
+reg = LinearRegression()
+
+# Entrenar el modelo
+reg.fit(X_train2, y_train2)
+
+# Evaluar el rendimiento del modelo
+score = reg.score(X_test2, y_test2)
+predictions = reg.predict(X_test2)
+mse = mean_squared_error(y_test2, predictions)
+r2 = r2_score(y_test2, predictions)
+r2
