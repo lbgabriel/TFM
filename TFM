@@ -1,114 +1,126 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import KFold
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LinearRegression
-import streamlit as st 
+from sklearn.metrics import mean_squared_error, r2_score
+import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-df20_21=pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\NBA_2020-2021_basic.csv")
-df21_22=pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\NBA_2021-2022_basic.csv")
-luka_playoff = pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\luka playoff.csv")
+# Cargar datos
+players = pd.read_csv("C:\\Users\\gabol\\Desktop\\TFM_NBA\\DF-PLAYERS.csv")
 
-luka_playoff.head()
-luka_playoff.columns
-# Lista para almacenar las nuevas columnas
-new_columns = []
+# Lista de columnas que deseas procesar
+columnas_procesar = ['FG', 'FGA', 'FG%', '3P', '3PA', '3P%', 'FT', 'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
 
-# Seleccionar las columnas desde la tercera en adelante
-columna = luka.columns[3:]
-for col in columna:
-    new_col = col + '_mean'
-    # Calcular la media acumulativa y agregar a la lista
-    new_columns.append(luka[col].expanding().mean().rename(new_col))
+# Calculamos el promedio para cada jugador solo en esas columnas
+promedio_por_jugador = players.groupby('Player Name')[columnas_procesar].transform(lambda x: x.fillna(x.mean()))
 
-# Concatenar todas las nuevas columnas en un solo DataFrame
-new_df = pd.concat(new_columns, axis=1)
+# Luego, rellenamos cualquier valor faltante en esas columnas con los valores promedio correspondientes
+df_asis = players.copy()
+df_asis[columnas_procesar] = df_asis[columnas_procesar].fillna(promedio_por_jugador)
 
-# Verificar los nombres de las columnas generadas
-print("Nombres de las nuevas columnas:")
-print(new_df.columns)
+# Calcular la media acumulativa para un jugador específico
+def calcular_media_acumulativa(df):
+    new_columns = []
+    columnas = columnas_procesar  # Definimos columnas aquí
+    for col in columnas:
+        new_col = col + '_mean'
+        new_columns.append(df[col].expanding().mean().rename(new_col))
+    new_df = pd.concat(new_columns, axis=1)
+    return new_df
 
-# Lista de columnas deseadas (asegúrate de que estos nombres sean correctos)
-columnas = [
-    'PTS_mean', 'FG%_mean', '3P_mean', '3PA_mean', '3P%_mean', 'FT_mean', 'FTA_mean',
-    'FT%_mean', 'ORB_mean', 'DRB_mean', 'TRB_mean', 'AST_mean', 'STL_mean', 'BLK_mean', 
-    'TOV_mean', 'PF_mean', 'GmSc_mean', '+/-_mean'
-]
+# Aplicación Streamlit
+st.title("NBA Player Stats Explorer")
+st.write("Esta aplicación predice los puntos y asistencias de jugadores de la NBA en los playoffs utilizando diferentes modelos de regresión.")
 
-# Filtrar las columnas deseadas en el nuevo DataFrame
-luka_work = new_df[columnas]
+# Panel de control
+st.sidebar.header("User Input Features")
+year_selected = st.sidebar.selectbox("Year", options=sorted(players['Period'].unique()))
+player_selected = st.sidebar.selectbox("Player", options=players['Player Name'].unique())
 
-# Mostrar el nuevo DataFrame
-print("\nNuevo DataFrame (luka_work) con las columnas seleccionadas:")
-print(luka_work)
+# Filtrar datos basado en selección
+filtered_data = players[(players['Period'] == year_selected) & (players['Player Name'] == player_selected)]
 
-# Agregar encabezado y descripción de la aplicación
-st.title('Optimización de Profundidad de Árbol de Decisión')
-st.write("""
-Esta aplicación permite encontrar la mejor profundidad para un modelo de árbol de decisión utilizando datos de entrenamiento.
-""")
+# Verificar si hay datos para el jugador seleccionado
+if filtered_data.empty:
+    st.write(f"No data available for {player_selected} in {year_selected}.")
+else:
+    st.header(f"Datos Filtrados para {player_selected} en {year_selected}")
+    st.dataframe(filtered_data)
 
-# Cargar datos (reemplaza esto con tu propio código para cargar los datos)
-# X, y = ...
-# X_train2, X_test2, y_train2, y_test2 = train_test_split(X, y, test_size=0.3)
+    # Calcular media acumulativa para el jugador seleccionado
+    new_df = calcular_media_acumulativa(filtered_data)
 
-# Widget para seleccionar la profundidad máxima del árbol
-max_depth = st.slider('Profundidad Máxima del Árbol', min_value=1, max_value=250, value=1)
+    # Seleccionar las columnas deseadas
+    columnas_disponibles = [col for col in columnas_procesar if col + '_mean' in new_df.columns]
+    luka_work = new_df[[col + '_mean' for col in columnas_disponibles]]
 
-# Botón para ajustar el modelo
-if st.button('Ajustar Modelo'):
-    # Inicializar el mejor MAE con un valor infinito
+    # Separar en variables predictoras y objetivo
+    X, y = luka_work.iloc[:, 1:].values, luka_work.iloc[:, 0].values 
+    X_train2, X_test2, y_train2, y_test2 = train_test_split(X, y, test_size=0.3)
+
+    # Entrenar y evaluar el modelo de DecisionTreeRegressor
     best_mae = float('inf')
     best_depth = None
-    
-    # Ajustar el modelo con la profundidad seleccionada
-    clf = DecisionTreeRegressor(max_depth=max_depth)
+    for depth in range(1, 250):
+        clf = DecisionTreeRegressor(max_depth=depth)
+        clf.fit(X_train2, y_train2)
+        tpredictions = clf.predict(X_test2)
+        t_error = np.abs(tpredictions - y_test2)
+        mae = t_error.mean()
+        if mae < best_mae:
+            best_mae = mae
+            best_depth = depth
+
+    clf = DecisionTreeRegressor(max_depth=best_depth)
     clf.fit(X_train2, y_train2)
-    predictions = clf.predict(X_test2)
-    
-    # Calcular el error absoluto medio mínimo
-    t_error = np.abs(predictions - y_test2)
-    best_mae = t_error.mean()
-    best_depth = max_depth
-    
-    # Mostrar la mejor combinación de parámetros
-    st.write("La mejor combinación de parámetros:")
-    st.write("Profundidad óptima:", best_depth)
-    st.write("Error absoluto medio mínimo:", best_mae)
-best_mae = float('inf')  # Inicializar el mejor MAE con un valor infinito
-best_depth = None  # Inicializar la mejor profundidad como nula
+    tree_predictions = clf.predict(X_test2)
 
-for depth in range(1, 250):
-    clf = DecisionTreeRegressor(max_depth=depth)
-    clf.fit(X_train2, y_train2)
-    tpredictions = clf.predict(X_test2)
-    t_error = np.abs(tpredictions - y_test2)
-    mae = t_error.mean()
-    if mae < best_mae:
-        best_mae = mae
-        best_depth = depth
+    # Entrenar y evaluar el modelo de LinearRegression
+    reg = LinearRegression()
+    reg.fit(X_train2, y_train2)
+    lr_predictions = reg.predict(X_test2)
+    lr_mse = mean_squared_error(y_test2, lr_predictions)
+    lr_r2 = r2_score(y_test2, lr_predictions)
 
-# Imprimir la mejor combinación de parámetros
-print("La mejor combinación de parámetros:")
-print("Profundidad óptima:", best_depth)
-print("Error absoluto medio mínimo:", best_mae)
+    st.header("Evolución del Jugador a lo largo del tiempo")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for col in columnas_disponibles:
+        ax.plot(new_df.index, new_df[col + '_mean'], label=col + '_mean')
+    ax.set_xlabel("Partidos")
+    ax.set_ylabel("Valores")
+    ax.set_title(f"Evolución de las Estadísticas de {player_selected}")
+    ax.legend()
+    st.pyplot(fig)
 
-tpredictions
+    st.header("Modelo de Decision Tree Regressor")
+    st.write(f"La mejor profundidad encontrada es: {best_depth}")
+    st.write(f"El error absoluto medio mínimo es: {best_mae}")
 
-# Crear una instancia del modelo de regresión lineal
-reg = LinearRegression()
+    st.header("Modelo de Linear Regression")
+    st.write(f"El MSE del modelo es: {lr_mse}")
+    st.write(f"El R2 del modelo es: {lr_r2}")
 
-# Entrenar el modelo
-reg.fit(X_train2, y_train2)
+    st.header("Comparación de Predicciones")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(y_test2, label="Valores Reales")
+    ax.plot(tree_predictions, label="Predicciones Decision Tree", linestyle='--')
+    ax.plot(lr_predictions, label="Predicciones Linear Regression", linestyle=':')
+    ax.legend()
+    st.pyplot(fig)
 
-# Evaluar el rendimiento del modelo
-score = reg.score(X_test2, y_test2)
-predictions = reg.predict(X_test2)
-mse = mean_squared_error(y_test2, predictions)
-r2 = r2_score(y_test2, predictions)
-r2
+    st.header("Distribución de Errores (Decision Tree)")
+    tree_error_distribution = np.abs(tree_predictions - y_test2)
+    fig, ax = plt.subplots()
+    sns.histplot(tree_error_distribution, kde=True, ax=ax)
+    ax.set_title("Distribución de Errores (Decision Tree)")
+    st.pyplot(fig)
+
+    st.header("Distribución de Errores (Linear Regression)")
+    lr_error_distribution = np.abs(lr_predictions - y_test2)
+    fig, ax = plt.subplots()
+    sns.histplot(lr_error_distribution, kde=True, ax=ax)
+    ax.set_title("Distribución de Errores (Linear Regression)")
+    st.pyplot(fig)
