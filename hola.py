@@ -2,11 +2,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.impute import SimpleImputer
-#import streamlit as st
+import streamlit as st
 
 
 # Configuración de la página
-streamlit.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
 
 # Cargar datos
 @st.cache_data
