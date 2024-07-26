@@ -6,7 +6,7 @@ from sklearn.impute import SimpleImputer
 
 
 # Configuración de la página
-st.set_page_config(layout="wide")
+streamlit.set_page_config(layout="wide")
 
 # Cargar datos
 @st.cache_data
