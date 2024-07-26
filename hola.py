@@ -15,7 +15,7 @@ st.set_page_config(layout="wide")
 def load_data(file_path):
     return pd.read_csv(file_path)
 
-players = load_data("C:\\Users\\gabol\\Desktop\\TFM_NBA\\DF-PLAYERS.csv")
+players = load_data("https://github.com/lbgabriel/TFM/blob/main/DF-PLAYERS.csv")
 
 # Eliminar espacios en nombres de columnas
 players.columns = players.columns.str.strip()
