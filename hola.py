@@ -185,7 +185,7 @@ elif choice == "Acerca de":
         - Inicio: Muestra un video introductorio y proporciona información general sobre la aplicación.
         - Historial: Permite seleccionar un jugador y ver sus datos históricos.
         - Resultados: Para el jugador seleccionado, la aplicación entrena un modelo de regresión lineal para predecir varias estadísticas (BLK, PTS, AST, DRB, TOV). Los resultados de las predicciones, así como las métricas de error del modelo (MSE y R²), se muestran en la UI.
-        - Gráficos: Compara las predicciones del modelo con los valores reales para las estadísticas seleccionadas, mostrando gráficos de líneas que visualizan las predicciones versus los valores reales.
+    
         - Acerca de: Proporciona una breve descripción sobre el propósito y desarrollo de la aplicación.
     4. Modelo Predictivo:
         - Preparación de Datos para el Modelo: Los datos se dividen en conjuntos de entrenamiento y prueba. Los valores faltantes se manejan con la estrategia de imputación de la media.
