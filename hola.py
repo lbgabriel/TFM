@@ -50,7 +50,7 @@ def calcular_media_acumulativa(df):
 
 # Aplicación Streamlit
 st.sidebar.title("Menú Principal")
-menu_options = ["Inicio", "Historial", "Resultados", "Gráficos", "Acerca de"]
+menu_options = ["Inicio", "Historial", "Resultados","Acerca de"]
 choice = st.sidebar.selectbox("Selecciona una opción", menu_options)
 
 if choice == "Inicio":
@@ -141,67 +141,33 @@ elif choice == "Resultados":
         predicciones[column_selected] = np.round(lr_predictions, 1)
         errores[column_selected] = (lr_mse, lr_r2)
 
-    st.header("Predicciones del Modelo ")
+    st.header("Predicciones del Modelo")
     columns = st.columns(len(columnas_prediccion))
     for idx, column_selected in enumerate(columnas_prediccion):
         with columns[idx]:
             st.subheader(column_selected)
-            pred_df = pd.DataFrame({
-                'Fecha': filtered_data['Date'].iloc[-len(predicciones[column_selected]):],
-                'Predicción': predicciones[column_selected],
-                'Real': y_test2[:len(predicciones[column_selected])]
+            # Comparar los datos predichos con los datos reales desde el DataFrame original
+            real_vals = filtered_data[column_selected].dropna().values
+            pred_vals = predicciones[column_selected]
+
+            # Alinear las longitudes para la comparación
+            if len(pred_vals) > len(real_vals):
+                pred_vals = pred_vals[:len(real_vals)]
+            elif len(real_vals) > len(pred_vals):
+                real_vals = real_vals[-len(pred_vals):]
+
+            comparison_df = pd.DataFrame({
+                'Fecha': filtered_data['Date'].iloc[-len(pred_vals):],
+                'Real': real_vals,
+                'Predicción': pred_vals
             })
-            st.dataframe(pred_df)
-            st.metric(label=f"Última Predicción ({column_selected})", value=f"{predicciones[column_selected][-1]:.1f}")
+
+            st.dataframe(comparison_df)
+            st.metric(label=f"Última Predicción ({column_selected})", value=f"{pred_vals[-1]:.1f}")
             st.metric(label=f"MSE ({column_selected})", value=f"{errores[column_selected][0]:.1f}")
             st.metric(label=f"R² ({column_selected})", value=f"{errores[column_selected][1]:.1f}")
 
-elif choice == "Gráficos":
-    st.header("Comparación de Predicciones")
-    player_selected = st.sidebar.selectbox("Jugador", options=players['Player Name'].unique())
-    filtered_data = players[players['Player Name'] == player_selected]
-    new_df = calcular_media_acumulativa(filtered_data)
 
-    predicciones = {}
-
-    for column_selected in columnas_prediccion:
-        columnas_disponibles = [col for col in columnas_procesar if col + '_mean' in new_df.columns]
-        luka_work = new_df[[col + '_mean' for col in columnas_disponibles]]
-
-        X, y = luka_work.drop(columns=[column_selected + '_mean']).values, luka_work[column_selected + '_mean'].values
-
-        imputer = SimpleImputer(strategy='mean')
-        X = imputer.fit_transform(X)
-        y = imputer.transform(y.reshape(-1, 1)).ravel()
-
-        reg = LinearRegression()
-        reg.fit(X, y)
-        lr_predictions = reg.predict(X)
-
-        predicciones[column_selected] = np.round(lr_predictions, 1)
-
-    for column_selected in columnas_prediccion:
-        real_vals = filtered_data[[column_selected, 'Date']].dropna()
-        pred_vals = predicciones[column_selected]
-
-        if len(pred_vals) == len(real_vals):
-            fig = px.line(
-                real_vals,
-                x='Date',
-                y=column_selected,
-                title=f"{column_selected} - Real vs Predicción",
-                labels={'value': column_selected, 'variable': 'Series'}
-            )
-            fig.add_scatter(
-                x=real_vals['Date'],
-                y=pred_vals,
-                mode='lines',
-                name=f'Predicción {column_selected}',
-                line=dict(dash='dash')
-            )
-            st.plotly_chart(fig)
-        else:
-            st.write(f"Datos no coinciden en longitud para {column_selected}")
 
 elif choice == "Acerca de":
     st.header("Acerca de")
