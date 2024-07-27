@@ -193,7 +193,7 @@ elif choice == "Acerca de":
     """)
 
 st.sidebar.title("Desarrolladores")
-st.sidebar.write("[Geanfranco Ramos ](gframos138@gmail.com)")
+st.sidebar.write("[Gian Franco Ramos,](gframos138@gmail.com)")
 st.sidebar.write("[Gabriel Leiva Baltodano](galeiva14@gmail.com)")
 st.sidebar.write("[Alex Valero](alexvalero0488@gmail.com)")
 
