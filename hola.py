@@ -1,11 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error
 from sklearn.impute import SimpleImputer
 import streamlit as st
-
 
 # Configuración de la página
 st.set_page_config(layout="wide")
@@ -50,11 +49,11 @@ def calcular_media_acumulativa(df):
 
 # Aplicación Streamlit
 st.sidebar.title("Menú Principal")
-menu_options = ["Inicio", "Historial", "Resultados","Acerca de"]
+menu_options = ["Inicio", "Historial", "Resultados", "Acerca de"]
 choice = st.sidebar.selectbox("Selecciona una opción", menu_options)
 
 if choice == "Inicio":
-    st.title("Predicciones de las estdisticas de los jugadores de la NBA")
+    st.title("Predicciones de las estadísticas de los jugadores de la NBA")
     st.video("https://www.youtube.com/watch?v=4Y0Nwddjz0A")
     st.write("""
     ### ¿Qué hace la app?
@@ -78,7 +77,6 @@ elif choice == "Historial":
     else:
         st.dataframe(filtered_data)
 
- # Glosario
     st.write("### Glosario")
     glosario = """
     **Rk** -- Rank  
@@ -131,17 +129,19 @@ elif choice == "Resultados":
         y_train2 = imputer.fit_transform(y_train2.reshape(-1, 1)).ravel()
         y_test2 = imputer.transform(y_test2.reshape(-1, 1)).ravel()
 
-        reg = LinearRegression()
-        reg.fit(X_train2, y_train2)
-        lr_predictions = reg.predict(X_test2)
-        lr_mse = mean_squared_error(y_test2, lr_predictions)
-        lr_r2 = r2_score(y_test2, lr_predictions)
+        # Gradient Boosting
+        modelo = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1)
+        modelo.fit(X_train2, y_train2)
+        gb_predictions = modelo.predict(X_test2)
+        gb_mae = mean_absolute_error(y_test2, gb_predictions)
 
         # Redondear las predicciones a un decimal
-        predicciones[column_selected] = np.round(lr_predictions, 1)
-        errores[column_selected] = (lr_mse, lr_r2)
+        predicciones[column_selected] = np.round(gb_predictions, 1)
+        errores[column_selected] = gb_mae
 
     st.header("Predicciones del Modelo")
+    
+    # Colocar las métricas en filas horizontales
     columns = st.columns(len(columnas_prediccion))
     for idx, column_selected in enumerate(columnas_prediccion):
         with columns[idx]:
@@ -164,10 +164,7 @@ elif choice == "Resultados":
 
             st.dataframe(comparison_df)
             st.metric(label=f"Última Predicción ({column_selected})", value=f"{pred_vals[-1]:.1f}")
-            st.metric(label=f"MSE ({column_selected})", value=f"{errores[column_selected][0]:.1f}")
-            st.metric(label=f"R² ({column_selected})", value=f"{errores[column_selected][1]:.1f}")
-
-
+            st.metric(label=f"MAE ({column_selected})", value=f"{errores[column_selected]:.1f}")
 
 elif choice == "Acerca de":
     st.header("Acerca de")
@@ -179,21 +176,7 @@ elif choice == "Acerca de":
         - Carga de Datos: Se lee un archivo CSV que contiene datos de los jugadores de la NBA.
         - Limpieza de Datos: Se eliminan los espacios en blanco en los nombres de las columnas y se convierte la columna Date a formato datetime.
         - Procesamiento de Columnas: Se seleccionan columnas relevantes para el análisis, convirtiéndolas a valores numéricos y manejando valores faltantes al reemplazarlos por la media de cada jugador.
-    2. Cálculo de Medias Acumulativas:
-        - Función calcular_media_acumulativa: Esta función calcula la media acumulativa de las estadísticas de rendimiento de cada jugador para cada columna seleccionada. La media acumulativa ayuda a capturar la tendencia general del rendimiento del jugador a lo largo del tiempo.
-    3. Configuración de la Interfaz de Usuario (UI):
-        - Inicio: Muestra un video introductorio y proporciona información general sobre la aplicación.
-        - Historial: Permite seleccionar un jugador y ver sus datos históricos.
-        - Resultados: Para el jugador seleccionado, la aplicación entrena un modelo de regresión lineal para predecir varias estadísticas (BLK, PTS, AST, DRB, TOV). Los resultados de las predicciones, así como las métricas de error del modelo (MSE y R²), se muestran en la UI.
-    
-        - Acerca de: Proporciona una breve descripción sobre el propósito y desarrollo de la aplicación.
-    4. Modelo Predictivo:
-        - Preparación de Datos para el Modelo: Los datos se dividen en conjuntos de entrenamiento y prueba. Los valores faltantes se manejan con la estrategia de imputación de la media.
-        - Entrenamiento del Modelo: Se usa LinearRegression de scikit-learn para entrenar el modelo con los datos disponibles. Se evalúa el modelo con métricas como el error cuadrático medio (MSE) y el coeficiente de determinación (R²).
+    2. Cálculo de Med
     """)
 
-st.sidebar.title("Desarrolladores")
-st.sidebar.write("[Gian Franco Ramos,](gframos138@gmail.com)")
-st.sidebar.write("[Gabriel Leiva Baltodano](galeiva14@gmail.com)")
-st.sidebar.write("[Alex Valero](alexvalero0488@gmail.com)")
-
+# Muestra el resultado en cajas horizontales
