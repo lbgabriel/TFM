@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 def load_data(file_path):
     return pd.read_csv(file_path)
 
-players = load_data("https://raw.githubusercontent.com/lbgabriel/TFM/main/datos%20correctos%20en%20cvs.csv")
+players = load_data("https://raw.githubusercontent.com/lbgabriel/TFM/main/TFM2.csv")
 
 # Eliminar espacios en nombres de columnas
 players.columns = players.columns.str.strip()
@@ -55,7 +55,7 @@ choice = st.sidebar.selectbox("Selecciona una opción", menu_options)
 # Equipo del Proyecto en el Sidebar
 st.sidebar.title("Equipo del Proyecto")
 st.sidebar.write("Luis Gabriel Leiva Baltodano [LinkedIn](https://www.linkedin.com)")
-st.sidebar.write("Gian Franco Ramos Chavezwiliam [LinkedIn](https://www.linkedin.com)")
+st.sidebar.write("Gian Franco Ramos  [LinkedIn](https://www.linkedin.com)")
 st.sidebar.write("William Alexander Valero Alfonso [LinkedIn](https://www.linkedin.com)")
 
 if choice == "Inicio":
