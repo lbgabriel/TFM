@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error  # Cambiamos a MSE
 from sklearn.impute import SimpleImputer
 import streamlit as st
 
@@ -51,24 +51,19 @@ def calcular_media_acumulativa(df):
 st.sidebar.title("Menú Principal")
 menu_options = ["Inicio", "Historial", "Resultados", "Acerca de"]
 choice = st.sidebar.selectbox("Selecciona una opción", menu_options)
+
 # Equipo del Proyecto en el Sidebar
 st.sidebar.title("Equipo del Proyecto")
 st.sidebar.write("Luis Gabriel Leiva Baltodano [LinkedIn](https://www.linkedin.com)")
-st.sidebar.write("Gian Franco Ramos  [LinkedIn](https://www.linkedin.com)")
+st.sidebar.write("Gian Franco Ramos [LinkedIn](https://www.linkedin.com)")
 st.sidebar.write("William Alexander Valero Alfonso [LinkedIn](https://www.linkedin.com)")
+
 if choice == "Inicio":
     st.title("Predicciones de las estadísticas de los jugadores de la NBA")
     st.video("https://www.youtube.com/watch?v=4Y0Nwddjz0A")
     st.write("""
     ### ¿Qué hace la app?
     Esta aplicación toma los datos de los jugadores de la NBA, que se registran en cada partido jugado, como los minutos por partido, rebotes, tiros encestados, tiros fallados, rebotes ofensivos y defensivos, tiros libres, tiros de dos y tres puntos, asistencias, robos, entre otros, para poder determinar las predicciones de su desempeño en el siguiente partido.
-    
-    ### ¿Cómo se hace esto?
-    Primero, buscamos que los datos tengan relación entre sí, como sucede con los datos de cada partido por jugador, que sean actualizados y además de acceso público, como lo son los datos de la NBA, los cuales se actualizan diariamente y en tiempo real durante los partidos.
-    
-    Ahora, sabiendo de dónde viene la información y conociendo que es una fuente primaria, tenemos la viabilidad de los datos, lo que aporta un valor real a la aplicación del modelo.
-    
-    Pasamos a los siguientes pasos que son el análisis de los datos y las iteraciones de estos mismos. La necesidad de iterar en la predicción de series temporales surge de la naturaleza secuencial y dependiente de los datos temporales. Cada paso predictivo se basa en el paso anterior, permitiendo extender las predicciones hacia el futuro de manera coherente y efectiva, a pesar de no tener las futuras X disponibles inicialmente.
     """)
 
 elif choice == "Historial":
@@ -137,11 +132,13 @@ elif choice == "Resultados":
         modelo = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1)
         modelo.fit(X_train2, y_train2)
         gb_predictions = modelo.predict(X_test2)
-        gb_mae = mean_absolute_error(y_test2, gb_predictions)
+
+        # Cambiar MAE por MSE
+        gb_mse = mean_squared_error(y_test2, gb_predictions)
 
         # Redondear las predicciones a un decimal
         predicciones[column_selected] = np.round(gb_predictions, 1)
-        errores[column_selected] = gb_mae
+        errores[column_selected] = gb_mse
 
     st.header("Predicciones del Modelo")
     
@@ -168,7 +165,7 @@ elif choice == "Resultados":
 
             st.dataframe(comparison_df)
             st.metric(label=f"Última Predicción ({column_selected})", value=f"{pred_vals[-1]:.1f}")
-            st.metric(label=f"MAE ({column_selected})", value=f"{errores[column_selected]:.1f}")
+            st.metric(label=f"MSE ({column_selected})", value=f"{errores[column_selected]:.1f}")
 
 elif choice == "Acerca de":
     st.header("Acerca de")
@@ -182,5 +179,3 @@ elif choice == "Acerca de":
         - Procesamiento de Columnas: Se seleccionan columnas relevantes para el análisis, convirtiéndolas a valores numéricos y manejando valores faltantes al reemplazarlos por la media de cada jugador.
     2. Cálculo de Med
     """)
-
-
