@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 def load_data(file_path):
     return pd.read_csv(file_path)
 
-players = load_data("https://raw.githubusercontent.com/lbgabriel/TFM/main/TFM2")
+players = load_data("https://raw.githubusercontent.com/lbgabriel/TFM/main/TFM2.cvs")
 
 # Eliminar espacios en nombres de columnas
 players.columns = players.columns.str.strip()
