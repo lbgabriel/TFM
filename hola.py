@@ -26,7 +26,7 @@ players['Date'] = pd.to_datetime(players['Date'], errors='coerce')
 players['Date'] = players['Date'].dt.date
 
 # Lista de columnas a procesar
-columnas_procesar = ['MP', 'FG', 'FGA', 'FG%', '3P', '3PA', '3P%', 'FT', 'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', '+/-']
+columnas_procesar = ['MP', 'FG', 'FGA', 'FG%', '3P', '3PA', '3P%', 'FT', 'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
 columnas_prediccion = ['BLK', 'PTS', 'AST', 'DRB', 'TOV']
 
 # Convertir columnas a numérico
