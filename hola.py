@@ -55,7 +55,7 @@ choice = st.sidebar.selectbox("Selecciona una opción", menu_options)
 # Equipo del Proyecto en el Sidebar
 st.sidebar.title("Equipo del Proyecto")
 st.sidebar.write("Luis Gabriel Leiva Baltodano [LinkedIn](https://www.linkedin.com)")
-st.sidebar.write("Gian Franco Ramos [LinkedIn](https://www.linkedin.com)")
+st.sidebar.write("Gian Franco Ramos Chavez [LinkedIn](https://www.linkedin.com)")
 st.sidebar.write("William Alexander Valero Alfonso [LinkedIn](https://www.linkedin.com)")
 
 if choice == "Inicio":
