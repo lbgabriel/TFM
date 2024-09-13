@@ -138,7 +138,7 @@ elif choice == "Resultados":
 
         # Redondear las predicciones a un decimal
         predicciones[column_selected] = np.round(gb_predictions, 3)
-        errores[column_selected] = gb_mse
+        errores[column_selected] = np.round(gb_mse, 3)
 
     st.header("Predicciones del Modelo")
     
