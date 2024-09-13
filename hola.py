@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_squared_error  # Cambiamos a MSE
+from sklearn.metrics import mean_squared_error, r2_score 
 from sklearn.impute import SimpleImputer
 import streamlit as st
 
@@ -131,23 +131,27 @@ elif choice == "Resultados":
         # Gradient Boosting
         modelo = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1)
         modelo.fit(X_train2, y_train2)
-        gb_predictions = modelo.predict(X_test2)
+        
+        # Predicciones
+        predicciones[column_selected] = modelo.predict(X_test2)
+        
+        # Cálculo del error (MSE y R²)
+        mse = mean_squared_error(y_test2, predicciones[column_selected])
+        r2 = r2_score(y_test2, predicciones[column_selected])
 
-        #  MSE
-        gb_mse = mean_squared_error(y_test2, gb_predictions)
-
-        # Redondear las predicciones a un decimal
-        predicciones[column_selected] = np.round(gb_predictions, 3)
-        errores[column_selected] = np.round(gb_mse, 3)
+        # Almacenar los errores y redondear a 4 decimales
+        errores[column_selected] = (round(mse, 4), round(r2, 4))
+        
+        # Redondear predicciones a 4 decimales
+        predicciones[column_selected] = np.round(predicciones[column_selected], 4)
 
     st.header("Predicciones del Modelo")
-    
+
     # Colocar las métricas en filas horizontales
     columns = st.columns(len(columnas_prediccion))
     for idx, column_selected in enumerate(columnas_prediccion):
         with columns[idx]:
             st.subheader(column_selected)
-            # Comparar los datos predichos con los datos reales desde el DataFrame original
             real_vals = filtered_data[column_selected].dropna().values
             pred_vals = predicciones[column_selected]
 
@@ -164,8 +168,9 @@ elif choice == "Resultados":
             })
 
             st.dataframe(comparison_df)
-            st.metric(label=f"Última Predicción ({column_selected})", value=f"{pred_vals[-1]:.1f}")
-            st.metric(label=f"MSE ({column_selected})", value=f"{errores[column_selected]:.1f}")
+            st.metric(label=f"Última Predicción ({column_selected})", value=f"{pred_vals[-1]:.4f}")
+            st.metric(label=f"MSE ({column_selected})", value=f"{errores[column_selected][0]:.4f}")
+            st.metric(label=f"R^2 ({column_selected})", value=f"{errores[column_selected][1]:.4f}")
 
 elif choice == "Acerca de":
     st.header("Acerca de")
