@@ -133,11 +133,11 @@ elif choice == "Resultados":
         modelo.fit(X_train2, y_train2)
         gb_predictions = modelo.predict(X_test2)
 
-        # Cambiar MAE por MSE
+        #  MSE
         gb_mse = mean_squared_error(y_test2, gb_predictions)
 
         # Redondear las predicciones a un decimal
-        predicciones[column_selected] = np.round(gb_predictions, 1)
+        predicciones[column_selected] = np.round(gb_predictions, 3)
         errores[column_selected] = gb_mse
 
     st.header("Predicciones del Modelo")
