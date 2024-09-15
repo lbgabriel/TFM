@@ -177,10 +177,4 @@ elif choice == "Acerca de":
     st.write("""
     La base de datos usada tiene información de las temporadas 2020-2021 hasta el inicio de los Playoff 2024.
              
-    Detalle del Código:
-    1. Carga y Preparación de Datos:
-        - Carga de Datos: Se lee un archivo CSV que contiene datos de los jugadores de la NBA.
-        - Limpieza de Datos: Se eliminan los espacios en blanco en los nombres de las columnas y se convierte la columna Date a formato datetime.
-        - Procesamiento de Columnas: Se seleccionan columnas relevantes para el análisis, convirtiéndolas a valores numéricos y manejando valores faltantes al reemplazarlos por la media de cada jugador.
-    2. Cálculo de Med
-    """)
+  
