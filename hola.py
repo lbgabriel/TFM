@@ -175,6 +175,6 @@ elif choice == "Resultados":
 elif choice == "Acerca de":
     st.header("Acerca de")
     st.write("""
-    La base de datos usada tiene información de las temporadas 2020-2021 hasta el inicio de los Playoff 2024.
+    La base de datos usada tiene información de las temporadas 2020-2021 hasta el inicio de los Playoff 2024.""")
              
   
